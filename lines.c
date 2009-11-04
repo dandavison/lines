@@ -106,7 +106,8 @@ int main(int argc, char **argv) {
 	
 	/* We're at wantline */
 	assert(currline == wantline) ;
-	getline(&line, &maxlinelength, infile)
+	if( getline(&line, &maxlinelength, infile) < 0)
+	    ERROR("Failed to read next line") ;
 
 	printf("%s", line) ;
 
