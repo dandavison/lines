@@ -39,7 +39,7 @@ void FSEEK_ERROR() {
 
 int main(int argc, char **argv) {
     FILE *lfile=NULL, *infile ;
-    int wantline, currline, furthest, c, rtn ;
+    int wantline, currline, furthest, c ;
     size_t maxlinelength=0, maxnlines ;
     long *linepos ;
     char *line=NULL ; /* getline automatically mallocs and reallocs it */
@@ -71,8 +71,8 @@ int main(int argc, char **argv) {
 
 	/* First check whether we need to rewind to get to wantline */
 	if(wantline < currline) {
-	    rtn = fseek(infile, linepos[wantline] - linepos[currline], SEEK_CUR) ;
-	    if(rtn != 0) FSEEK_ERROR() ;
+	    if( fseek(infile, linepos[wantline] - linepos[currline], SEEK_CUR) != 0 )
+		FSEEK_ERROR() ;
 	    if( getline(&line, &maxlinelength, infile) < 0 )
 	    	ERROR("Failed to read new line (reached end of file?)") ;
 	    printf("%s", line) ;
@@ -85,8 +85,8 @@ int main(int argc, char **argv) {
 				     than we can fast-forward to the relevant spot. */
 	    if(wantline <= furthest) {  /* we've been past it previously, but subsequently did a rewind: 
 					   go straight to it, print it and skip to next wantline */
-		rtn = fseek(infile, linepos[wantline] - linepos[currline], SEEK_CUR) ;
-		if(rtn != 0) FSEEK_ERROR() ;
+		if( fseek(infile, linepos[wantline] - linepos[currline], SEEK_CUR) != 0 )
+		    FSEEK_ERROR() ;
 		if( getline(&line, &maxlinelength, infile) < 0 )
 		    ERROR("Failed to read new line (reached end of file?)") ;
 		printf("%s", line) ;
@@ -95,8 +95,8 @@ int main(int argc, char **argv) {
 	    }
 	    /* Wantline is further than we've been before: fast-forward to our furthest point, 
 	       then start advancing line-by-line  */
-	    rtn = fseek(infile, linepos[furthest] - linepos[currline], SEEK_CUR) ;
-	    if(rtn != 0) FSEEK_ERROR() ;
+	    if( fseek(infile, linepos[furthest] - linepos[currline], SEEK_CUR) != 0 )
+		FSEEK_ERROR() ;
 	    currline = furthest ;
 	}
 
