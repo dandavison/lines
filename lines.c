@@ -33,7 +33,7 @@ void usage() {
     ERROR("lines -f linenumfile < inputfile ") ;
 }
 
-void fseekerrormsg() {
+void FSEEK_ERROR() {
     ERROR("fseek error (Did you use a pipe and ask for non-monotonically increasing lines? You can't use a pipe in that case.) :") ;
 }
 
@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
     linepos = (long *) malloc(maxnlines * sizeof(long)) ;
     for(c = 0 ; c < maxnlines ; c++) linepos[c] = -9 ;
     
-    infile = stdin ; // NB can't use fseek with a pipe! See fseekerrormsg above.
+    infile = stdin ; // NB can't use fseek with a pipe! See FSEEK_ERROR above.
     currline = furthest = 0 ;
 
     while( fscanf(lfile, "%d", &wantline) == 1) {
@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
 	/* First check whether we need to rewind to get to wantline */
 	if(wantline < currline) {
 	    rtn = fseek(infile, linepos[wantline] - linepos[currline], SEEK_CUR) ;
-	    if(rtn != 0) fseekerrormsg() ;
+	    if(rtn != 0) FSEEK_ERROR() ;
 	    if( getline(&line, &maxlinelength, infile) < 0 )
 	    	ERROR("Failed to read new line (reached end of file?)") ;
 	    printf("%s", line) ;
@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
 	    if(wantline <= furthest) {  /* we've been past it previously, but subsequently did a rewind: 
 					   go straight to it, print it and skip to next wantline */
 		rtn = fseek(infile, linepos[wantline] - linepos[currline], SEEK_CUR) ;
-		if(rtn != 0) fseekerrormsg() ;
+		if(rtn != 0) FSEEK_ERROR() ;
 		if( getline(&line, &maxlinelength, infile) < 0 )
 		    ERROR("Failed to read new line (reached end of file?)") ;
 		printf("%s", line) ;
@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
 	    /* Wantline is further than we've been before: fast-forward to our furthest point, 
 	       then start advancing line-by-line  */
 	    rtn = fseek(infile, linepos[furthest] - linepos[currline], SEEK_CUR) ;
-	    if(rtn != 0) fseekerrormsg() ;
+	    if(rtn != 0) FSEEK_ERROR() ;
 	    currline = furthest ;
 	}
 
