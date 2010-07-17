@@ -58,7 +58,6 @@ int main(int argc, char **argv) {
     maxnlines = 1e3 ;
     linepos = (long *) malloc(maxnlines * sizeof(long)) ;
     for(c = 0 ; c < maxnlines ; c++) linepos[c] = -9 ;
-    
     infile = stdin ; // NB can't use fseek with a pipe! See FSEEK_ERROR above.
     currline = furthest = 0 ;
 
@@ -80,11 +79,12 @@ int main(int argc, char **argv) {
 	    continue ;
 	}
 	
-	/* So we're either at wantline or it's ahead of us */
+	/* We're either at wantline or it's ahead of us */
 	if(furthest > currline) { /* If we've already been further than this point, 
-				     than we can fast-forward to the relevant spot. */
-	    if(wantline <= furthest) {  /* we've been past it previously, but subsequently did a rewind: 
-					   go straight to it, print it and skip to next wantline */
+				     than we can fast-forward. */
+	    if(wantline <= furthest) {  /* we've been past it previously, but
+					   subsequently did a rewind: fast-forward to it,
+					   print it and skip to next wantline */
 		if( fseek(infile, linepos[wantline] - linepos[currline], SEEK_CUR) != 0 )
 		    FSEEK_ERROR() ;
 		if( getline(&line, &maxlinelength, infile) < 0 )
@@ -93,15 +93,17 @@ int main(int argc, char **argv) {
 		currline = wantline + 1 ;
 		continue ;
 	    }
-	    /* Wantline is further than we've been before: fast-forward to our furthest point, 
-	       then start advancing line-by-line  */
+	    /* Wantline is further than we've been before:
+	       fast-forward to our furthest point, then start
+	       advancing line-by-line  */
 	    if( fseek(infile, linepos[furthest] - linepos[currline], SEEK_CUR) != 0 )
 		FSEEK_ERROR() ;
 	    currline = furthest ;
 	}
 
-	/* Now we're going beyond where we've been before. 
-	   So advance line-by-line, storing the positions of the new lines, until we find wantline */
+	/* Now we're going beyond where we've been before. So advance
+	   line-by-line, storing the positions of the new lines, until
+	   we find wantline */
 	while(wantline > currline) {
 	    if( getline(&line, &maxlinelength, infile) < 0 )
 		ERROR("Failed to read new line (reached end of file?)") ;
